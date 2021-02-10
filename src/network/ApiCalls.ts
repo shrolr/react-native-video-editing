@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { ServerLink } from '../utilities/constants';
+import { NetworkResponse } from '../models';
+import { ServerLink, SERVER_AUTH_FAILED, SERVER_REGISTER_FAILED } from '../utilities/constants';
 const httpClient = axios.create({
   headers: {
     Accept: "application/json",
@@ -11,19 +12,6 @@ httpClient.defaults.timeout = 15000;
 
 interface IApiCalls { }
 
-interface INetworkResponse {
-  status?: number;
-  data?: {};
-}
-
-class NetworkResponse implements INetworkResponse {
-  status: number;
-  data: any;
-  constructor() {
-    this.status = 4;;
-    this.data = null;
-  }
-}
 
 class ApiCalls implements IApiCalls {
   private server_link: string;
@@ -48,34 +36,37 @@ class ApiCalls implements IApiCalls {
 
   }
 
-  register = async (name:string,email: string, password: string,) => {
+  register = async (name: string, email: string, password: string,) => {
 
     let _NetworkResponse = new NetworkResponse()
     try {
-      let response = await httpClient.post(this.server_link + "users/register", {name, password, email})
+      let response = await httpClient.post(this.server_link + "users/register", { name, password, email })
       _NetworkResponse.data = response.data;
       _NetworkResponse.status = response.status;
       return _NetworkResponse;
     } catch (error) {
       console.log(error)
-      return false;
+      _NetworkResponse.status = SERVER_REGISTER_FAILED;
+      _NetworkResponse.data = JSON.stringify(error);;
     }
-  }
-  
-  login = async (email:string, password: string) => {
-    let _NetworkResponse = new NetworkResponse()
-    try {
-      let response = await httpClient.post(this.server_link + "users/login", { login:email,password })
-      _NetworkResponse.data = response.data;
-      _NetworkResponse.status = response.status;
-      return _NetworkResponse;
-    } catch (error) {
-      console.log(error)
-      return false;
-    }
+    return _NetworkResponse;
 
   }
- 
+
+  login = async (email: string, password: string) => {
+    let _NetworkResponse = new NetworkResponse()
+    try {
+      let response = await httpClient.post(this.server_link + "users/login", { login: email, password })
+      _NetworkResponse.data = response.data;
+      _NetworkResponse.status = response.status;
+    } catch (error) {
+      _NetworkResponse.status = SERVER_AUTH_FAILED;
+      _NetworkResponse.data = JSON.stringify(error);
+    }
+    return _NetworkResponse;
+
+  }
+
 
 
 }

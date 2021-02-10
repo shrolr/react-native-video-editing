@@ -1,7 +1,9 @@
 import { Button, Text, View, Form, Item, Input } from 'native-base';
 import React, { useState } from 'react'
+import { Alert } from 'react-native';
 import ActionHelper from '../context/ActionHelper';
 import { useStateContext } from '../context/state';
+import { NetworkResponse } from '../models';
 import { AuthNavProps } from '../Routes/AuthStackNavigator/AuthParamList';
 
 
@@ -11,13 +13,17 @@ export default function RegisterScreen({ navigation }: AuthNavProps<"Register">)
     const [password, setpassword] = useState("")
     const [email, setemail] = useState("")
     const { dispatch } = useStateContext();
+    const [state, setstate] = useState({response:{} as NetworkResponse })
 
-
+    const callback = (response: NetworkResponse) => {
+        Alert.alert(response.status.toString(), response.data)
+        setstate({ response })
+    };
     const onBackPress = () => {
         navigation.goBack()
     }
     const onRegisterPress = () => {
-        ActionHelper.register(username,password,email,dispatch!,navigation)
+        ActionHelper.register(username, password, email, dispatch!,callback, navigation)
     }
     const onUserNameChange = (username: string) => {
         setusername(username)
@@ -49,6 +55,8 @@ export default function RegisterScreen({ navigation }: AuthNavProps<"Register">)
             <Button onPress={onBackPress} full>
                 <Text>Go Back</Text>
             </Button>
+            <Text>{state.response.status + "\n" + state.response.data}</Text>
+
         </View>
 
     )
